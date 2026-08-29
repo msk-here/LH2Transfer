@@ -17,7 +17,20 @@ nominal.Vullage2= LH2Model.VTotal2-nominal.VL2;
 nominal.rhov2 = nominal.mv2./nominal.Vullage2;
 nominal.pcthL2 = nominal.hL2./LH2Model.H;
     
-for z=1:length(nominal.rhov1);
+% --- preallocation (added during CoolProp port; performance only) ---
+nZ = length(nominal.rhov1);
+nominal.pv1       = zeros(nZ,1);
+nominal.Tv1       = zeros(nZ,LH2Model.nV1);
+nominal.TL1       = zeros(nZ,LH2Model.nL1);
+nominal.Jvalve111 = zeros(nZ,1);
+nominal.hL1       = zeros(1,nZ);      % row vector: line 51 transposes it
+nominal.pv2       = zeros(nZ,1);
+nominal.Jvalve222 = zeros(nZ,1);
+nominal.Tv2       = zeros(nZ,LH2Model.nV2);
+nominal.TL2       = zeros(nZ,LH2Model.nL2);
+% -------------------------------------------------------------------
+
+for z=1:nZ
     
         nominal.pv1(z,:)=vaporpressure_bis(nominal.uv1(z,end), nominal.rhov1(z));
         for ii = 1:LH2Model.nV1
