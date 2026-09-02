@@ -5,9 +5,6 @@ Agreement version 1.3, under which LH2TS is released.
 
 ## Originator
 
-<!-- REQUIRED: replace with your real name. A GitHub handle alone does not
-     "reasonably allow subsequent Recipients to identify the originator". -->
-
 **Muhammad Sami Khan**, GitHub: [@msk-here](https://github.com/msk-here)
 
 These Modifications were produced as part of MSc thesis work on liquid
@@ -26,9 +23,6 @@ Consent is granted to the characterization of these alterations as a
 Modification.
 
 ## Description of alterations
-
-<!-- REQUIRED: replace [DATE] entries with real commit dates. Get them with:
-     git log --reverse --date=short --format="%ad  %s"                    -->
 
 All alterations were made in **August 2026**. The originating repository is
 <https://github.com/LLNL/LH2Transfer>, from which this repository is forked.
