@@ -1,12 +1,38 @@
 
 # LH2 Transfer Simulation
 
+> ## About this fork
+>
+> This is a modified fork of [LLNL/LH2Transfer](https://github.com/LLNL/LH2Transfer).
+> **The REFPROP licence requirement has been removed.** Parahydrogen properties
+> are supplied by the open-source [CoolProp](http://www.coolprop.org/) library
+> through a drop-in `refpropm.m` shim, so no call site in the original code was
+> changed.
+>
+> Two further changes were needed to run the code end to end: a missing file
+> (`vaporpressure_bis.m`) was reconstructed, and the post-processing loop was
+> preallocated. All seven of the original REFPROP-derived polynomial fits are
+> **retained unchanged**, so results stay comparable to Petitpas (2018).
+>
+> See **[NOTICE.md](NOTICE.md)** for the full list of alterations (required by
+> the NASA Open Source Agreement) and **[SHIM_NOTES.md](SHIM_NOTES.md)** for the
+> technical detail and validation evidence.
+>
+> Verified with MATLAB R2026a, Python 3.13, CoolProp 8.0.0 on Windows 11.
+> The original code was developed against MATLAB R2013b and REFPROP 9.1.
+
+---
+
 The code LH2TS (for “LH2 Transfer Simulation”) enables to calculate the wasted H2 due to transfer and boil-off while using LH2 as a fuel for transportation. More specifically, a reduced lumped-parameter model simulates thermodynamic states in 2 vessels (one feeding, one receiving) using mass and energy balances for each control volume (vapor and liquid, in each vessel) and relying on 2-phase behavior and heat transfer models specific to cryogenic fluids (self consistent theory of dynamical condensation/evaporation – see references for details).
 This code was developed and tested using MATLAB R2013b and REFPROP DLL version 9.1 for parahydrogen [1], on a laptop PC running on 64-bit Windows 10 Enterprise (2016), with an Intel Core -7-6600U CPU @ 2.60 GHz and a 16.0 GB RAM.
 
 # Description of the files
 
-The simulation code consists of 9 MATLAB files that should be located in the same folder:
+The simulation code consists of 13 MATLAB files that should be located in the same folder.
+The first nine are from the original release; the last four were added or
+reconstructed in this fork (see [NOTICE.md](NOTICE.md)).
+
+**From the original release:**
 -	runNominal.m : runs the overall code
 
 -	inputs_TrailerToDewar.m : initializes the inputs and boundary conditions
@@ -25,6 +51,16 @@ The simulation code consists of 9 MATLAB files that should be located in the sam
 
 -	plotLH2Data.m : plots output data, in multiple separate figures
 
+**Added in this fork:**
+
+-	refpropm.m : drop-in replacement for the NIST REFPROP MATLAB wrapper, backed by CoolProp. Implements the same signature, units and quality-flag conventions
+
+-	vaporpressure_bis.m : required by Data_extraction.m but absent from the original release. Reconstructed verbatim from the local subfunction at LH2Simulate.m:860. Calculates vapor pressure based on **internal energy** and density (note: vaporpressure.m is a different function, taking temperature and density, and is shadowed by a local subfunction during the solve)
+
+-	validate_shim.m : validation harness. Run this before runNominal.m; it must report ALL CHECKS PASSED
+
+-	SHIM_NOTES.md : documentation of the CoolProp substitution, the REFPROP 9.1 cross-check, and an audit of the hardcoded polynomial fits
+
 
 Running runNominal.m with the MATLAB software will solve governing equations and save the results in “output.txt”, located in the same folder as the other files. Please refer to runNominal.m for the nomenclature of the output file.
 
@@ -34,7 +70,38 @@ Modifications were made to the original version, including new shape factors, re
 
 The code has been verified only for “typical” thermodynamic states of H2 (i.e. temperatures, pressures and densities close to or within the 2 phase region). Atypical scenarios such as the cool-down with LH2 of a warm vessel have not been verified and the code would likely need additional modifications in order to adequately simulate those scenarios.
 
-Please not that package only works if a REFPROP subroutine compatible with MATLAB is installed on the computer. For linking REFPROP with MATLAB, make sure to follow instructions that can be found online, such as http://trc.nist.gov/refprop/LINKING/Linking.htm (last accessed 12/7/2017). If running into issues with .dll from MATLAB, make sure you install REFPROP in “Program Files (x86)” and that REFPRP64_thunk_pcwin64.dll is in that directory.
+# Requirements
+
+*This section replaces the original REFPROP linking instructions. See
+[NOTICE.md](NOTICE.md).*
+
+This fork does **not** require a REFPROP licence. It requires:
+
+- MATLAB (tested on R2026a; the original was developed on R2013b)
+- Python 3, configured in MATLAB via `pyenv`. Use
+  `pyenv(ExecutionMode="InProcess")`; the out-of-process mode adds a process
+  boundary to every property call, of which the solver makes roughly 68 per
+  right-hand-side evaluation.
+- CoolProp: `py -m pip install CoolProp`
+
+Verify the installation before running anything:
+
+```matlab
+>> validate_shim
+```
+
+This must report `ALL CHECKS PASSED`. A mis-mapped property code produces
+figures that look entirely plausible and are wrong, so do not skip it.
+
+Then:
+
+```matlab
+>> runNominal
+```
+
+*For reference, the original instructions were: REFPROP must be installed in
+"Program Files (x86)" with REFPRP64_thunk_pcwin64.dll in that directory; see
+http://trc.nist.gov/refprop/LINKING/Linking.htm (last accessed 12/7/2017).*
 
 # References
 
@@ -51,6 +118,8 @@ physics model of nominal and faulty operational modes of propellant loading (liq
 
 # License
 
-LH2TS is released under a NASA open source agreement license, version 1.3. For more details see the [LICENSE](https://github.com/LLNL/LH2Transfer/blob/master/LICENSE.md) file
+LH2TS is released under a NASA open source agreement license, version 1.3. For more details see the [LICENSE](LICENSE.md) file.
+
+Modifications in this fork are described in [NOTICE.md](NOTICE.md), as required by clause 3.C of that agreement.
 
 LLNL-CODE-748554
